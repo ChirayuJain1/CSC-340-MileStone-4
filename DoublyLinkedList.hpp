@@ -55,6 +55,9 @@ public:
 	void deleteList();
 
 	Node* getHead();
+	Node* getTail();
+
+	void printList();
 
 }; // end DoublyLinkedList
 #endif	// _DOUBLY_LINKED_LIST

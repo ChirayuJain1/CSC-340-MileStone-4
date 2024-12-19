@@ -6,10 +6,13 @@
  * 11/01/24 - Created by ChatGPT
  * 11/01/24 - Modified by Chirayu Jain
  * 12/01/24 - Modified by Chirayu Jain and Akash Goyal
+ * 12/17/24 - Fixed error by Chirayu Jain
  */
 
 #include "DoublyLinkedList.hpp"
 #include <memory>
+#include <iostream>
+
 
 DoublyLinkedList::DoublyLinkedList() : head(nullptr), tail(nullptr) {}
 
@@ -29,16 +32,19 @@ void DoublyLinkedList::insertAtHead(Node* newNode) {
 
 void DoublyLinkedList::insertAtTail(Node* newNode) {
     if (!newNode) return;
-    
-    newNode->next = nullptr;
-    newNode->prev = tail;
-    
+
+    newNode->prev = tail;  
+    newNode->next = nullptr;  
+
     if (tail) {
         tail->next = newNode;
-    } else {
-        head = newNode;
     }
+
     tail = newNode;
+
+    if (!head) {
+        head = tail;
+    }
 }
 
 Node* DoublyLinkedList::findNode(int value) {
@@ -58,7 +64,7 @@ void DoublyLinkedList::deleteNode(Node* existingNode) {
     if (existingNode->prev) {
         existingNode->prev->next = existingNode->next;
     } else {
-        head = existingNode->next;
+        head = existingNode->next;  
     }
     
     if (existingNode->next) {
@@ -66,57 +72,38 @@ void DoublyLinkedList::deleteNode(Node* existingNode) {
     } else {
         tail = existingNode->prev;
     }
-    
+
     delete existingNode;
 }
 
+
 void DoublyLinkedList::moveToHead(Node* existingNode) {
     if (!existingNode || existingNode == head) return;
-    
-    if (existingNode == tail) {
-        tail = existingNode->prev;
-        tail->next = nullptr;
-    } else {
-        existingNode->prev->next = existingNode->next;
-        existingNode->next->prev = existingNode->prev;
-    }
-    
-    existingNode->prev = nullptr;
-    existingNode->next = head;
-    head->prev = existingNode;
-    head = existingNode;
+
+    deleteNode(existingNode);
+    insertAtHead(existingNode);
 }
 
 void DoublyLinkedList::moveToTail(Node* existingNode) {
     if (!existingNode || existingNode == tail) return;
-    
-    if (existingNode == head) {
-        head = existingNode->next;
-        head->prev = nullptr;
-    } else {
-        existingNode->prev->next = existingNode->next;
-        existingNode->next->prev = existingNode->prev;
-    }
-    
-    existingNode->next = nullptr;
-    existingNode->prev = tail;
-    tail->next = existingNode;
-    tail = existingNode;
+
+    deleteNode(existingNode);
+    insertAtTail(existingNode);
 }
 
 void DoublyLinkedList::deleteHeadNode() {
-    if (!head) return;
-    
-    Node* temp = head;
-    head = head->next;
-    
     if (head) {
-        head->prev = nullptr;
-    } else {
-        tail = nullptr;
+        Node* temp = head;  
+        head = head->next;  
+
+        if (head) {
+            head->prev = nullptr;  
+        } else {
+            tail = nullptr;  
+        }
+
+        delete temp;
     }
-    
-    delete temp;
 }
 
 void DoublyLinkedList::deleteTailNode() {
@@ -142,4 +129,8 @@ void DoublyLinkedList::deleteList() {
 
 Node* DoublyLinkedList::getHead() {
     return head;
+}
+
+Node* DoublyLinkedList::getTail() {
+    return tail;
 }

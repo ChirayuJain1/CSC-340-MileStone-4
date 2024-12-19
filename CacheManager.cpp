@@ -3,24 +3,26 @@
  *
  * 11/27/24 - Created by ChatGPT
  * 11/27/24 - Modified by Chirayu Jain and Akash Goyal
- * 
+ * 12/17/24 - Modified, fixed error and added Smart pointer by Chirayu Jain 
  */
 
 #include "CacheManager.hpp"
 #include <memory>
+#include <iostream>
 
 CacheManager::CacheManager(size_t capacity) 
-    : _maxSize(capacity), _curSize(0) {
-    _fifoCache = new DoublyLinkedList();
-    _hashTable = new HashTable();
+    : _maxSize(capacity), 
+      _curSize(0),
+      _fifoCache(std::make_unique<DoublyLinkedList>()),
+      _hashTable(std::make_unique<HashTable>()) {
 }
 
 HashTable* CacheManager::getTable() {
-    return _hashTable;
+    return _hashTable.get();
 }
 
 DoublyLinkedList* CacheManager::getFifoList() {
-    return _fifoCache;
+    return _fifoCache.get();
 }
 
 Node* CacheManager::getItem(int key) {
@@ -45,33 +47,36 @@ size_t CacheManager::getNumberOfItems() {
 
 bool CacheManager::add(int key, Data* data) {
     if (_curSize >= _maxSize) {
-        // Remove oldest item from cache
-        Node* oldestNode = _fifoCache->getHead();
+        Node* oldestNode = _fifoCache->getTail();
         if (oldestNode) {
             _hashTable->remove(oldestNode->getKey());
-            _fifoCache->deleteHeadNode();
+            _fifoCache->deleteTailNode();
             _curSize--;
         }
     }
-    
-    auto fifoNode = new FifoNode(key);
+
+    std::unique_ptr<FifoNode> fifoNode(new FifoNode(key));
     fifoNode->setDataValues(data);
-    
-    auto hashNode = new HashNode(key);
-    hashNode->setCacheNode(fifoNode);
-    
-    if (_hashTable->add(key, hashNode)) {
-        _fifoCache->insertAtTail(fifoNode);
+
+    std::unique_ptr<HashNode> hashNode(new HashNode(key));
+    hashNode->setCacheNode(fifoNode.get());
+
+    if (_hashTable->add(key, hashNode.get())) {
+        _fifoCache->insertAtHead(fifoNode.get());
+        fifoNode.release();
+        hashNode.release();
         _curSize++;
         return true;
     }
-    
-    delete fifoNode;
-    delete hashNode;
+
     return false;
 }
 
 bool CacheManager::remove(int key) {
+    if (!_hashTable->contains(key)) {
+        return false;
+    }
+
     HashNode* hashNode = _hashTable->getItem(key);
     if (hashNode) {
         Node* cacheNode = hashNode->getCacheNode();
@@ -80,6 +85,7 @@ bool CacheManager::remove(int key) {
         _curSize--;
         return true;
     }
+
     return false;
 }
 
