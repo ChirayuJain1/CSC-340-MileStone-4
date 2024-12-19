@@ -13,6 +13,7 @@
 
 #include "HashNode.hpp"
 #include <string>
+#include <list>
 
 
 /**
@@ -22,6 +23,7 @@
 */
 class HashTable {
 private:
+
 	// HashNode* table[_HASH_TABLE_SIZE];
 	HashNode** table;
 	int numberOfItems;
